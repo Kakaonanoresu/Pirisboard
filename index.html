@@ -5,57 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PirisBoard</title>
     <style>
-        /* CSSスタイル */
-        body.light {
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
-            color: #333;
-            transition: background-color 0.5s ease, color 0.5s ease;
-        }
-
-        body.dark {
-            background-color: #333333;
-            color: #f0f0f0;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
-            background-color: #ffffff;
+            background-color: var(--container-bg);
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, background-color 0.5s ease, color 0.5s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        body.dark .container {
-            background-color: #444;
-            color: #f0f0f0;
+        .container.hidden {
+            transform: translateY(-100%);
         }
 
         h1 {
             text-align: center;
+            color: var(--text-color);
             margin-bottom: 20px;
+            transition: color 0.3s ease;
         }
 
         form {
             margin-bottom: 20px;
+            transition: margin-bottom 0.3s ease;
         }
 
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: var(--text-color);
+            transition: color 0.3s ease;
         }
 
         input[type="text"], textarea {
             width: calc(100% - 22px);
             padding: 10px;
             margin-bottom: 20px;
-            border: 1px solid #cccccc;
+            border: 1px solid var(--input-border);
             border-radius: 5px;
             box-sizing: border-box;
             transition: border-color 0.3s ease;
@@ -73,51 +70,83 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.5s ease;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
         button:hover {
             background-color: #0056b3;
+            transform: scale(1.05);
         }
 
         button:active {
-            transform: scale(1.1);
+            animation: buttonClick 0.5s forwards;
+        }
+
+        @keyframes buttonClick {
+            0% {
+                transform: scale(1);
+                background-color: #0078d4;
+            }
+            50% {
+                transform: scale(1.2);
+                background-color: #ff6347;
+            }
+            100% {
+                transform: scale(1);
+                background-color: #0078d4;
+            }
         }
 
         ul {
             list-style-type: none;
             padding: 0;
+            transition: padding 0.3s ease;
         }
 
         li {
             margin-bottom: 20px;
             padding: 20px;
-            background-color: #ffffff;
+            background-color: var(--container-bg);
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease, background-color 0.5s ease, color 0.5s ease;
+            transition: box-shadow 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease;
         }
 
-        body.dark li {
-            background-color: #555;
-            color: #f0f0f0;
+        li:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
         .message-number {
             font-size: 14px;
             color: #888888;
             margin-bottom: 5px;
+            transition: color 0.3s ease, margin-bottom 0.3s ease;
         }
 
+        /* ライトテーマ */
+        body.light {
+            --bg-color: #f0f0f0;
+            --text-color: #333333;
+            --container-bg: #ffffff;
+            --input-border: #cccccc;
+        }
+
+        /* ダークテーマ */
+        body.dark {
+            --bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --container-bg: #2e2e2e;
+            --input-border: #555555;
+        }
+
+        /* アニメーション */
         .fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            animation: fadeIn 0.5s ease-in-out;
         }
 
-        .fade-in.show {
-            opacity: 1;
-            transform: translateY(0);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
@@ -148,7 +177,6 @@
         function switchTheme() {
             const body = document.body;
             body.classList.toggle('dark');
-            body.classList.toggle('light');
 
             // アニメーションを追加
             const container = document.querySelector('.container');
@@ -190,11 +218,6 @@
             newMessage.classList.add('fade-in');
 
             messageList.appendChild(newMessage);
-
-            // アニメーションの開始
-            requestAnimationFrame(() => {
-                newMessage.classList.add('show');
-            });
         }
 
         // ページ読み込み時にメッセージを表示
