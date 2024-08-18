@@ -108,6 +108,17 @@
             color: #888888;
             margin-bottom: 5px;
         }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-in.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="light">
@@ -136,7 +147,8 @@
         // ダークテーマのトグル
         function switchTheme() {
             const body = document.body;
-            body.classList.toggle('dark-theme');
+            body.classList.toggle('dark');
+            body.classList.toggle('light');
 
             // アニメーションを追加
             const container = document.querySelector('.container');
