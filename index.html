@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PirisBoard</title>
+    <style>
+        /* CSSスタイル */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333333;
+        }
+
+        input[type="text"], textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            border-color: #0078d4;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 24px;
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.5s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:active {
+            transform: scale(1.1);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        li:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .message-number {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 5px;
+        }
+
+        .dark {
+            background-color: #333333;
+            color: #f0f0f0;
+        }
+    </style>
+</head>
+<body class="light">
+    <div class="container">
+        <h1>PirisBoard</h1>
+        <div class="theme-toggle">
+            <button onclick="switchTheme()">テーマを切り替える</button>
+        </div>
+        <div class="form-container">
+            <form onsubmit="submitForm(event)">
+                <label for="user_name">名前:</label>
+                <input type="text" id="user_name" name="user_name" required>
+                <label for="message">メッセージ:</label>
+                <textarea id="message" name="message" rows="4" required></textarea>
+                <button type="submit">投稿する</button>
+            </form>
+        </div>
+        <div class="message-list">
+            <ul>
+                <!-- メッセージはここに追加されます -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // フォーム送信時のアニメーションとメッセージ送信
+        function submitForm(event) {
+            event.preventDefault();
+            var form = event.target;
+
+            var formData = {
+                user_name: document.getElementById('user_name').value,
+                message: document.getElementById('message').value
+            };
+
+            // 投稿ボタンのアニメーションを開始
+            var button = form.querySelector('button');
+            button.classList.add('active');
+
+            // メッセージデータを仮想的に保存・表示（実際のバックエンドはないため、即座に表示）
+            setTimeout(() => {
+                // ボタンのアニメーションをリセット
+                button.classList.remove('active');
+
+                // 新しいメッセージを追加
+                var messageList = document.querySelector('.message-list ul');
+                var newMessage = document.createElement('li');
+                newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${formData.user_name}</strong>: ${formData.message}</p>`;
+                messageList.appendChild(newMessage);
+
+                // フォームをリセット
+                form.reset();
+            }, 500); // 少し遅延を加えてアニメーションの一貫性を確保
+        }
+
+        // テーマの切り替え
+        function switchTheme() {
+            var body = document.body;
+            body.classList.toggle('light');
+            body.classList.toggle('dark');
+        }
+    </script>
+</body>
+</html>
