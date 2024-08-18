@@ -148,19 +148,17 @@
         </div>
         <div class="message-list">
             <ul id="messageList">
-                <!-- メッセージがここに表示されます -->
+                <!-- 保存されたメッセージがここに表示されます -->
             </ul>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
     <script>
-        const socket = io();
-
-        // ダークテーマのトグル
+        // テーマ切り替え
         function switchTheme() {
             const body = document.body;
             body.classList.toggle('dark');
+            body.classList.toggle('light');
 
             // アニメーションを追加
             const container = document.querySelector('.container');
@@ -170,7 +168,7 @@
             });
         }
 
-        // メッセージの送信
+        // メッセージの送信と保存
         document.getElementById('messageForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -182,11 +180,28 @@
                 message: message
             };
 
-            // サーバーにメッセージを送信
-            socket.emit('newMessage', messageData);
+            // メッセージをサーバーに送信
+            fetch('/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(messageData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(() => {
+                // 新しいメッセージを表示
+                addMessageToList(messageData);
 
-            // フォームをリセット
-            event.target.reset();
+                // フォームをリセット
+                event.target.reset();
+            })
+            .catch(error => console.error('There was a problem with the fetch operation:', error));
         });
 
         // メッセージをリストに追加して表示
@@ -199,13 +214,14 @@
             messageList.appendChild(newMessage);
         }
 
-        // サーバーからメッセージを受信して表示
-        socket.on('loadMessages', (messages) => {
-            messages.forEach(addMessageToList);
-        });
-
-        socket.on('newMessage', (message) => {
-            addMessageToList(message);
+        // ページ読み込み時にメッセージを表示
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/messages')
+                .then(response => response.json())
+                .then(messages => {
+                    messages.forEach(addMessageToList);
+                })
+                .catch(error => console.error('There was a problem with the fetch operation:', error));
         });
     </script>
 </body>
