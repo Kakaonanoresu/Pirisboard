@@ -98,12 +98,12 @@
         }
 
         .dark-theme {
-            background-color: #1e1e1e;
+            background-color: #2c2c2c;
             color: #e0e0e0;
         }
 
         .dark-theme .container {
-            background-color: #2c2c2c;
+            background-color: #3c3c3c;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -138,6 +138,10 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="light">
@@ -147,7 +151,7 @@
             <button onclick="switchTheme()">テーマを切り替える</button>
         </div>
         <div class="form-container">
-            <form onsubmit="submitForm(event)">
+            <form id="messageForm">
                 <label for="user_name">名前:</label>
                 <input type="text" id="user_name" name="user_name" required>
                 <label for="message">メッセージ:</label>
@@ -163,23 +167,23 @@
     </div>
 
     <script>
-        // WebSocketの接続を作成
-        const socket = new WebSocket('ws://localhost:8080');
+        // ダークテーマのトグル
+        function switchTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-theme');
 
-        // 接続が開いた時のイベント
-        socket.onopen = function() {
-            console.log('WebSocket接続が開かれました');
-        };
+            // アニメーションを追加
+            const container = document.querySelector('.container');
+            container.classList.toggle('hidden');
+            requestAnimationFrame(() => {
+                container.classList.toggle('hidden');
+            });
+        }
 
-        // サーバーからメッセージを受信したときのイベント
-        socket.onmessage = function(event) {
-            const messageData = JSON.parse(event.data);
-            addMessageToList(messageData);
-        };
-
-        // メッセージを送信し保存
-        function submitForm(event) {
+        // メッセージの送信と保存
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
             event.preventDefault();
+
             const userName = document.getElementById('user_name').value;
             const message = document.getElementById('message').value;
 
@@ -188,15 +192,17 @@
                 message: message
             };
 
-            // WebSocketを通してメッセージを送信
-            socket.send(JSON.stringify(messageData));
+            // メッセージをローカルストレージに保存
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(messageData);
+            localStorage.setItem('messages', JSON.stringify(messages));
 
             // 新しいメッセージを表示
             addMessageToList(messageData);
 
             // フォームをリセット
             event.target.reset();
-        }
+        });
 
         // メッセージをリストに追加して表示
         function addMessageToList(messageData) {
@@ -213,18 +219,11 @@
             });
         }
 
-        // テーマの切り替え
-        function switchTheme() {
-            const body = document.body;
-            body.classList.toggle('dark-theme');
-
-            // アニメーションを追加
-            const container = document.querySelector('.container');
-            container.classList.toggle('hidden');
-            requestAnimationFrame(() => {
-                container.classList.toggle('hidden');
-            });
-        }
+        // ページ読み込み時にメッセージを表示
+        document.addEventListener('DOMContentLoaded', function() {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.forEach(addMessageToList);
+        });
     </script>
 </body>
 </html>
