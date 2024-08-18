@@ -6,11 +6,18 @@
     <title>PirisBoard</title>
     <style>
         /* CSSスタイル */
-        body {
+        body.light {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
+            color: #333;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        body.dark {
+            background-color: #333333;
+            color: #f0f0f0;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
@@ -21,12 +28,16 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.5s ease, color 0.5s ease;
+        }
+
+        body.dark .container {
+            background-color: #444;
+            color: #f0f0f0;
         }
 
         h1 {
             text-align: center;
-            color: #333333;
             margin-bottom: 20px;
         }
 
@@ -38,7 +49,6 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: #333333;
         }
 
         input[type="text"], textarea {
@@ -85,22 +95,18 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease;
+            transition: box-shadow 0.3s ease, background-color 0.5s ease, color 0.5s ease;
         }
 
-        li:hover {
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        body.dark li {
+            background-color: #555;
+            color: #f0f0f0;
         }
 
         .message-number {
             font-size: 14px;
             color: #888888;
             margin-bottom: 5px;
-        }
-
-        .dark {
-            background-color: #333333;
-            color: #f0f0f0;
         }
     </style>
 </head>
@@ -120,48 +126,76 @@
             </form>
         </div>
         <div class="message-list">
-            <ul>
-                <!-- メッセージはここに追加されます -->
+            <ul id="messageList">
+                <!-- 保存されたメッセージがここに表示されます -->
             </ul>
         </div>
     </div>
 
     <script>
-        // フォーム送信時のアニメーションとメッセージ送信
-        function submitForm(event) {
-            event.preventDefault();
-            var form = event.target;
-
-            var formData = {
-                user_name: document.getElementById('user_name').value,
-                message: document.getElementById('message').value
-            };
-
-            // 投稿ボタンのアニメーションを開始
-            var button = form.querySelector('button');
-            button.classList.add('active');
-
-            // メッセージデータを仮想的に保存・表示（実際のバックエンドはないため、即座に表示）
-            setTimeout(() => {
-                // ボタンのアニメーションをリセット
-                button.classList.remove('active');
-
-                // 新しいメッセージを追加
-                var messageList = document.querySelector('.message-list ul');
-                var newMessage = document.createElement('li');
-                newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${formData.user_name}</strong>: ${formData.message}</p>`;
-                messageList.appendChild(newMessage);
-
-                // フォームをリセット
-                form.reset();
-            }, 500); // 少し遅延を加えてアニメーションの一貫性を確保
-        }
-
-        // テーマの切り替え
+        // テーマの切り替えと保存
         function switchTheme() {
             var body = document.body;
             body.classList.toggle('light');
             body.classList.toggle('dark');
+
+            // テーマの状態をローカルストレージに保存
+            localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        // ページ読み込み時にテーマを設定
+        window.onload = function() {
+            var savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.body.className = savedTheme;
+            }
+
+            // ローカルストレージから保存されたメッセージを取得して表示
+            loadMessages();
+        };
+
+        // メッセージを送信し保存
+        function submitForm(event) {
+            event.preventDefault();
+            var userName = document.getElementById('user_name').value;
+            var message = document.getElementById('message').value;
+
+            var messageData = {
+                userName: userName,
+                message: message
+            };
+
+            // ローカルストレージにメッセージを保存
+            saveMessage(messageData);
+
+            // 新しいメッセージを表示
+            addMessageToList(messageData);
+
+            // フォームをリセット
+            event.target.reset();
+        }
+
+        // メッセージをローカルストレージに保存
+        function saveMessage(messageData) {
+            var messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(messageData);
+            localStorage.setItem('messages', JSON.stringify(messages));
+        }
+
+        // ローカルストレージからメッセージを読み込み表示
+        function loadMessages() {
+            var messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.forEach(function(messageData) {
+                addMessageToList(messageData);
+            });
+        }
+
+        // メッセージをリストに追加して表示
+        function addMessageToList(messageData) {
+            var messageList = document.getElementById('messageList');
+            var newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${messageData.userName}</strong>: ${messageData.message}</p>`;
+            messageList.appendChild(newMessage);
         }
     </script>
 </body>
