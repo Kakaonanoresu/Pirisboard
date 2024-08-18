@@ -5,22 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PirisBoard</title>
     <style>
-        /* CSSスタイル */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             transition: background-color 0.5s ease, color 0.5s ease;
-        }
-
-        body.light {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        body.dark {
-            background-color: #222222;
-            color: #f0f0f0;
         }
 
         .container {
@@ -30,16 +19,16 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, background-color 0.5s ease, color 0.5s ease;
+            transition: transform 0.3s ease;
         }
 
-        body.dark .container {
-            background-color: #333333;
-            color: #f0f0f0;
+        .container.hidden {
+            transform: translateY(-100%);
         }
 
         h1 {
             text-align: center;
+            color: #333333;
             margin-bottom: 20px;
         }
 
@@ -51,6 +40,7 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            color: #333333;
         }
 
         input[type="text"], textarea {
@@ -75,20 +65,17 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.5s ease;
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        button:active {
-            transform: scale(1.1);
-        }
-
         ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
 
         li {
@@ -97,32 +84,48 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease, background-color 0.5s ease, color 0.5s ease;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeInUp 0.5s forwards;
+            transition: box-shadow 0.3s ease;
         }
 
-        @keyframes fadeInUp {
-            0% {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        body.dark li {
-            background-color: #444444;
-            color: #f0f0f0;
+        li:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
 
         .message-number {
             font-size: 14px;
             color: #888888;
             margin-bottom: 5px;
+        }
+
+        .dark-theme {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .dark-theme .container {
+            background-color: #1e1e1e;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-theme input[type="text"], 
+        .dark-theme textarea {
+            border-color: #555555;
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .dark-theme button {
+            background-color: #0078d4;
+            color: #ffffff;
+        }
+
+        .dark-theme button:hover {
+            background-color: #0056b3;
+        }
+
+        .theme-toggle {
+            text-align: center;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -149,40 +152,33 @@
     </div>
 
     <script>
-        // テーマの切り替えと保存
-        function switchTheme() {
-            var body = document.body;
-            body.classList.toggle('light');
-            body.classList.toggle('dark');
+        // WebSocketの接続を作成
+        const socket = new WebSocket('ws://localhost:8080');
 
-            // テーマの状態をローカルストレージに保存
-            localStorage.setItem('theme', body.classList.contains('dark') ? 'dark' : 'light');
-        }
+        // 接続が開いた時のイベント
+        socket.onopen = function() {
+            console.log('WebSocket接続が開かれました');
+        };
 
-        // ページ読み込み時にテーマを設定
-        window.onload = function() {
-            var savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.body.className = savedTheme;
-            }
-
-            // ローカルストレージから保存されたメッセージを取得して表示
-            loadMessages();
+        // サーバーからメッセージを受信したときのイベント
+        socket.onmessage = function(event) {
+            const messageData = JSON.parse(event.data);
+            addMessageToList(messageData);
         };
 
         // メッセージを送信し保存
         function submitForm(event) {
             event.preventDefault();
-            var userName = document.getElementById('user_name').value;
-            var message = document.getElementById('message').value;
+            const userName = document.getElementById('user_name').value;
+            const message = document.getElementById('message').value;
 
-            var messageData = {
+            const messageData = {
                 userName: userName,
                 message: message
             };
 
-            // ローカルストレージにメッセージを保存
-            saveMessage(messageData);
+            // WebSocketを通してメッセージを送信
+            socket.send(JSON.stringify(messageData));
 
             // 新しいメッセージを表示
             addMessageToList(messageData);
@@ -191,27 +187,36 @@
             event.target.reset();
         }
 
-        // メッセージをローカルストレージに保存
-        function saveMessage(messageData) {
-            var messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(messageData);
-            localStorage.setItem('messages', JSON.stringify(messages));
-        }
+        // メッセージをリストに追加して表示
+        function addMessageToList(messageData) {
+            const messageList = document.getElementById('messageList');
+            const newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${messageData.userName}</strong>: ${messageData.message}</p>`;
+            
+            // アニメーションを追加
+            newMessage.style.opacity = 0;
+            newMessage.style.transform = 'translateY(20px)';
+            messageList.appendChild(newMessage);
 
-        // ローカルストレージからメッセージを読み込み表示
-        function loadMessages() {
-            var messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.forEach(function(messageData) {
-                addMessageToList(messageData);
+            // アニメーションの開始
+            requestAnimationFrame(() => {
+                newMessage.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                newMessage.style.opacity = 1;
+                newMessage.style.transform = 'translateY(0)';
             });
         }
 
-        // メッセージをリストに追加して表示
-        function addMessageToList(messageData) {
-            var messageList = document.getElementById('messageList');
-            var newMessage = document.createElement('li');
-            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${messageData.userName}</strong>: ${messageData.message}</p>`;
-            messageList.appendChild(newMessage);
+        // テーマの切り替え
+        function switchTheme() {
+            const body = document.body;
+            body.classList.toggle('dark-theme');
+
+            // アニメーションを追加
+            const container = document.querySelector('.container');
+            container.classList.toggle('hidden');
+            requestAnimationFrame(() => {
+                container.classList.toggle('hidden');
+            });
         }
     </script>
 </body>
