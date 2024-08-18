@@ -6,19 +6,21 @@
     <title>PirisBoard</title>
     <style>
         /* CSSスタイル */
-        body.light {
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
-            color: #333;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
 
+        body.light {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
         body.dark {
-            background-color: #333333;
+            background-color: #222222;
             color: #f0f0f0;
-            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
         .container {
@@ -32,7 +34,7 @@
         }
 
         body.dark .container {
-            background-color: #444;
+            background-color: #333333;
             color: #f0f0f0;
         }
 
@@ -113,7 +115,7 @@
         }
 
         body.dark li {
-            background-color: #555;
+            background-color: #444444;
             color: #f0f0f0;
         }
 
