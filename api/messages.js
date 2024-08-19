@@ -1,8 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-// メッセージを保存するファイルのパス
-const messagesFilePath = path.join(__dirname, 'messages.json');
+const messagesFilePath = path.join(process.cwd(), 'messages.json');
 
 // ファイルからメッセージを読み込む関数
 function loadMessages() {
@@ -21,17 +20,19 @@ function saveMessages(messages) {
 // 初期メッセージの読み込み
 let messages = loadMessages();
 
-// メッセージを追加する関数
-function addMessage(user_name, message) {
-    const newMessage = { user_name, message, timestamp: new Date().toISOString() };
-    messages.push(newMessage);
-    saveMessages(messages);
-    return newMessage;
+export default function handler(req, res) {
+    if (req.method === 'GET') {
+        // メッセージを返す
+        res.status(200).json({ messages });
+    } else if (req.method === 'POST') {
+        // メッセージを追加する
+        const { user_name, message } = req.body;
+        const newMessage = { user_name, message, timestamp: new Date().toISOString() };
+        messages.push(newMessage);
+        saveMessages(messages);
+        res.status(201).json({ message: newMessage });
+    } else {
+        res.setHeader('Allow', ['GET', 'POST']);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
 }
-
-// メッセージを取得する関数
-function getMessages() {
-    return messages;
-}
-
-module.exports = { addMessage, getMessages };
