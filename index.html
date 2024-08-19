@@ -110,6 +110,9 @@
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
             transition: box-shadow 0.3s ease, background-color 0.3s ease;
         }
         body.dark li {
@@ -128,6 +131,16 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -196,6 +209,13 @@
             const newMessage = document.createElement('li');
             newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${user_name}</strong>: ${message}</p>`;
             messageList.appendChild(newMessage);
+
+            // 新しいメッセージにフェードインアニメーションを追加
+            newMessage.style.opacity = 0;
+            newMessage.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                newMessage.style.animation = 'fadeIn 0.5s forwards';
+            }, 100);
         }
 
         // テーマの切り替え
