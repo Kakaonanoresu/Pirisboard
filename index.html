@@ -1,60 +1,70 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PirisBoard</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
+        /* CSSスタイル */
+        body.light {
+            background-color: #f0f0f0;
+            color: #333333;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
+
+        body.dark {
+            background-color: #333333;
+            color: #f0f0f0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
         .container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
-            background-color: var(--container-bg);
+            background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
-        .container.hidden {
-            transform: translateY(-100%);
+
+        body.dark .container {
+            background-color: #444444;
         }
+
         h1 {
             text-align: center;
-            color: var(--text-color);
+            color: inherit;
             margin-bottom: 20px;
-            transition: color 0.3s ease;
         }
+
         form {
             margin-bottom: 20px;
-            transition: margin-bottom 0.3s ease;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: var(--text-color);
-            transition: color 0.3s ease;
+            color: inherit;
         }
+
         input[type="text"], textarea {
             width: calc(100% - 22px);
             padding: 10px;
             margin-bottom: 20px;
-            border: 1px solid var(--input-border);
+            border: 1px solid #cccccc;
             border-radius: 5px;
             box-sizing: border-box;
             transition: border-color 0.3s ease;
         }
-        input[type="text"]:focus, textarea:focus {
-            border-color: #0078d4;
-            outline: none;
+
+        body.dark input[type="text"], body.dark textarea {
+            background-color: #666666;
+            border-color: #555555;
+            color: #f0f0f0;
         }
+
         button {
             padding: 12px 24px;
             background-color: #0078d4;
@@ -62,72 +72,43 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.5s ease;
         }
+
         button:hover {
             background-color: #0056b3;
-            transform: scale(1.05);
         }
+
         button:active {
-            animation: buttonClick 0.5s forwards;
+            transform: scale(1.1);
         }
-        @keyframes buttonClick {
-            0% {
-                transform: scale(1);
-                background-color: #0078d4;
-            }
-            50% {
-                transform: scale(1.2);
-                background-color: #ff6347;
-            }
-            100% {
-                transform: scale(1);
-                background-color: #0078d4;
-            }
-        }
+
         ul {
             list-style-type: none;
             padding: 0;
-            transition: padding 0.3s ease;
         }
+
         li {
             margin-bottom: 20px;
             padding: 20px;
-            background-color: var(--container-bg);
+            background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease, margin-bottom 0.3s ease, padding 0.3s ease;
+            transition: box-shadow 0.3s ease;
         }
+
         li:hover {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
+
+        body.dark li {
+            background-color: #555555;
+        }
+
         .message-number {
             font-size: 14px;
             color: #888888;
             margin-bottom: 5px;
-            transition: color 0.3s ease, margin-bottom 0.3s ease;
-        }
-        /* ライトテーマ */
-        body.light {
-            --bg-color: #f0f0f0;
-            --text-color: #333333;
-            --container-bg: #ffffff;
-            --input-border: #cccccc;
-        }
-        /* ダークテーマ */
-        body.dark {
-            --bg-color: #1e1e1e;
-            --text-color: #ffffff;
-            --container-bg: #2e2e2e;
-            --input-border: #555555;
-        }
-        /* アニメーション */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
     </style>
 </head>
@@ -138,7 +119,7 @@
             <button onclick="switchTheme()">テーマを切り替える</button>
         </div>
         <div class="form-container">
-            <form id="messageForm">
+            <form onsubmit="submitForm(event)">
                 <label for="user_name">名前:</label>
                 <input type="text" id="user_name" name="user_name" required>
                 <label for="message">メッセージ:</label>
@@ -147,82 +128,49 @@
             </form>
         </div>
         <div class="message-list">
-            <ul id="messageList">
-                <!-- 保存されたメッセージがここに表示されます -->
+            <ul>
+                <!-- メッセージはここに追加されます -->
             </ul>
         </div>
     </div>
 
     <script>
-        // テーマ切り替え
-        function switchTheme() {
-            const body = document.body;
-            body.classList.toggle('dark');
-            body.classList.toggle('light');
-
-            // アニメーションを追加
-            const container = document.querySelector('.container');
-            container.classList.toggle('hidden');
-            requestAnimationFrame(() => {
-                container.classList.toggle('hidden');
-            });
-        }
-
-        // メッセージの送信と保存
-        document.getElementById('messageForm').addEventListener('submit', function(event) {
+        // メッセージ送信フォームのサブミット処理
+        function submitForm(event) {
             event.preventDefault();
-
-            const userName = document.getElementById('user_name').value;
-            const message = document.getElementById('message').value;
-
-            const messageData = {
-                userName: userName,
-                message: message
+            var formData = {
+                user_name: document.getElementById('user_name').value,
+                message: document.getElementById('message').value
             };
 
-            // メッセージをサーバーに送信
-            fetch('/messages', {
+            fetch('/post_message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(messageData)
+                body: JSON.stringify(formData)
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.user_name, data.message);
             })
-            .then(() => {
-                // 新しいメッセージを表示
-                addMessageToList(messageData);
+            .catch(error => console.error('Error:', error));
+        }
 
-                // フォームをリセット
-                event.target.reset();
-            })
-            .catch(error => console.error('There was a problem with the fetch operation:', error));
-        });
-
-        // メッセージをリストに追加して表示
-        function addMessageToList(messageData) {
-            const messageList = document.getElementById('messageList');
-            const newMessage = document.createElement('li');
-            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${messageData.userName}</strong>: ${messageData.message}</p>`;
-            newMessage.classList.add('fade-in');
-
+        // 新しいメッセージをリストに追加する関数
+        function addMessage(user_name, message) {
+            var messageList = document.querySelector('.message-list ul');
+            var newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${user_name}</strong>: ${message}</p>`;
             messageList.appendChild(newMessage);
         }
 
-        // ページ読み込み時にメッセージを表示
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/messages')
-                .then(response => response.json())
-                .then(messages => {
-                    messages.forEach(addMessageToList);
-                })
-                .catch(error => console.error('There was a problem with the fetch operation:', error));
-        });
+        // テーマの切り替え
+        function switchTheme() {
+            var body = document.body;
+            body.classList.toggle('light');
+            body.classList.toggle('dark');
+        }
     </script>
 </body>
 </html>
