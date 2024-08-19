@@ -1,0 +1,7 @@
+{
+  "name": "Pirisboard",
+  "version": "1.0.0",
+  "dependencies": {
+    "mongoose": "^7.0.0"  // ここにmongooseを追加します。
+  }
+}
