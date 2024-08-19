@@ -1,23 +1,18 @@
-const express = require('express');
-const { addMessage, getMessages } = require('./messages'); // 修正したmessages.jsを読み込み
-const app = express();
-const port = process.env.PORT || 3000;
+// フロントエンドのコード
+async function fetchMessages() {
+    const response = await fetch('/api/messages');
+    const data = await response.json();
+    displayMessages(data.messages);
+}
 
-app.use(express.json());
-app.use(express.static('public'));
-
-// メッセージ取得エンドポイント
-app.get('/api/messages', (req, res) => {
-    res.json({ messages: getMessages() });
-});
-
-// メッセージ投稿エンドポイント
-app.post('/api/messages', (req, res) => {
-    const { user_name, message } = req.body;
-    const newMessage = addMessage(user_name, message);
-    res.json({ message: newMessage });
-});
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+async function postMessage(userName, messageContent) {
+    const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_name: userName, message: messageContent }),
+    });
+    const data = await response.json();
+    addMessageToUI(data.message);
+}
