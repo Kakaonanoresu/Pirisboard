@@ -1,35 +1,59 @@
-import fs from 'fs';
-import path from 'path';
+// api/messages.js
+import mongoose from 'mongoose';
 
-const messagesFilePath = path.join(process.cwd(), 'messages.json');
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// ファイルからメッセージを読み込む関数
-function loadMessages() {
-    if (fs.existsSync(messagesFilePath)) {
-        const data = fs.readFileSync(messagesFilePath, 'utf8');
-        return JSON.parse(data);
+if (!MONGODB_URI) {
+    throw new Error(
+        'Please define the MONGODB_URI environment variable inside .env.local'
+    );
+}
+
+/** 接続のキャッシュ */
+let cached = global.mongoose;
+
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectToDatabase() {
+    if (cached.conn) {
+        return cached.conn;
     }
-    return [];
+
+    if (!cached.promise) {
+        const opts = {
+            bufferCommands: false,
+        };
+
+        cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+            return mongoose;
+        });
+    }
+    cached.conn = await cached.promise;
+    return cached.conn;
 }
 
-// ファイルにメッセージを書き込む関数
-function saveMessages(messages) {
-    fs.writeFileSync(messagesFilePath, JSON.stringify(messages, null, 2), 'utf8');
-}
+// メッセージのスキーマとモデル
+const messageSchema = new mongoose.Schema({
+    user_name: String,
+    message: String,
+    timestamp: { type: Date, default: Date.now },
+});
 
-// 初期メッセージの読み込み
-let messages = loadMessages();
+const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
+    await connectToDatabase();
+
     if (req.method === 'GET') {
-        // メッセージを返す
+        // 全てのメッセージを取得
+        const messages = await Message.find({});
         res.status(200).json({ messages });
     } else if (req.method === 'POST') {
-        // メッセージを追加する
+        // 新しいメッセージを保存
         const { user_name, message } = req.body;
-        const newMessage = { user_name, message, timestamp: new Date().toISOString() };
-        messages.push(newMessage);
-        saveMessages(messages);
+        const newMessage = await Message.create({ user_name, message });
         res.status(201).json({ message: newMessage });
     } else {
         res.setHeader('Allow', ['GET', 'POST']);
