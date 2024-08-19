@@ -1,54 +1,74 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PirisBoard</title>
     <style>
-        /* CSSスタイル */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s ease;
+        }
         body.light {
             background-color: #f0f0f0;
-            color: #333333;
-            transition: background-color 0.5s ease, color 0.5s ease;
         }
-
         body.dark {
-            background-color: #333333;
-            color: #f0f0f0;
-            transition: background-color 0.5s ease, color 0.5s ease;
+            background-color: #2e2e2e;
         }
-
         .container {
             max-width: 800px;
-            margin: auto;
+            margin: 40px auto;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
-
         body.dark .container {
             background-color: #444444;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
         }
-
         h1 {
             text-align: center;
-            color: inherit;
+            color: #333333;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+        body.dark h1 {
+            color: #ffffff;
+        }
+        .theme-toggle {
+            text-align: center;
             margin-bottom: 20px;
         }
-
+        .theme-toggle button {
+            padding: 10px 20px;
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .theme-toggle button:hover {
+            background-color: #0056b3;
+        }
         form {
             margin-bottom: 20px;
         }
-
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
-            color: inherit;
+            color: #333333;
+            transition: color 0.3s ease;
         }
-
+        body.dark label {
+            color: #dddddd;
+        }
         input[type="text"], textarea {
             width: calc(100% - 22px);
             padding: 10px;
@@ -56,15 +76,17 @@
             border: 1px solid #cccccc;
             border-radius: 5px;
             box-sizing: border-box;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
         }
-
         body.dark input[type="text"], body.dark textarea {
-            background-color: #666666;
-            border-color: #555555;
-            color: #f0f0f0;
+            background-color: #555555;
+            color: #ffffff;
+            border-color: #444444;
         }
-
+        input[type="text"]:focus, textarea:focus {
+            border-color: #0078d4;
+            outline: none;
+        }
         button {
             padding: 12px 24px;
             background-color: #0078d4;
@@ -72,43 +94,40 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.5s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
-
         button:hover {
             background-color: #0056b3;
+            transform: scale(1.05);
         }
-
-        button:active {
-            transform: scale(1.1);
-        }
-
         ul {
             list-style-type: none;
             padding: 0;
         }
-
         li {
             margin-bottom: 20px;
             padding: 20px;
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease;
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
         }
-
+        body.dark li {
+            background-color: #555555;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
         li:hover {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
-
-        body.dark li {
-            background-color: #555555;
-        }
-
         .message-number {
             font-size: 14px;
             color: #888888;
             margin-bottom: 5px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
     </style>
 </head>
@@ -119,7 +138,7 @@
             <button onclick="switchTheme()">テーマを切り替える</button>
         </div>
         <div class="form-container">
-            <form onsubmit="submitForm(event)">
+            <form id="messageForm">
                 <label for="user_name">名前:</label>
                 <input type="text" id="user_name" name="user_name" required>
                 <label for="message">メッセージ:</label>
@@ -128,49 +147,66 @@
             </form>
         </div>
         <div class="message-list">
-            <ul>
+            <ul id="messageList">
                 <!-- メッセージはここに追加されます -->
             </ul>
         </div>
     </div>
 
     <script>
-        // メッセージ送信フォームのサブミット処理
-        function submitForm(event) {
-            event.preventDefault();
-            var formData = {
-                user_name: document.getElementById('user_name').value,
-                message: document.getElementById('message').value
-            };
+        document.addEventListener("DOMContentLoaded", function () {
+            loadMessages();
+        });
 
-            fetch('/post_message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                addMessage(data.user_name, data.message);
-            })
-            .catch(error => console.error('Error:', error));
+        async function loadMessages() {
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            data.messages.forEach((message) => {
+                addMessageToList(message.user_name, message.message);
+            });
         }
 
-        // 新しいメッセージをリストに追加する関数
-        function addMessage(user_name, message) {
-            var messageList = document.querySelector('.message-list ul');
-            var newMessage = document.createElement('li');
+        async function submitForm(event) {
+            event.preventDefault();
+            const user_name = document.getElementById('user_name').value;
+            const message = document.getElementById('message').value;
+
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_name, message }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                addMessageToList(data.message.user_name, data.message.message);
+            }
+
+            // フォームをクリア
+            document.getElementById('messageForm').reset();
+        }
+
+        // メッセージを画面に表示
+        function addMessageToList(user_name, message) {
+            const messageList = document.getElementById('messageList');
+            const newMessage = document.createElement('li');
             newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${user_name}</strong>: ${message}</p>`;
             messageList.appendChild(newMessage);
         }
 
         // テーマの切り替え
         function switchTheme() {
-            var body = document.body;
+            const body = document.body;
             body.classList.toggle('light');
             body.classList.toggle('dark');
         }
+
+        // フォーム送信時のイベント
+        document.getElementById('messageForm').addEventListener('submit', submitForm);
     </script>
 </body>
 </html>
