@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PirisBoard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s ease;
+        }
+        body.light {
+            background-color: #f0f0f0;
+        }
+        body.dark {
+            background-color: #2e2e2e;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        body.dark .container {
+            background-color: #444444;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+        body.dark h1 {
+            color: #ffffff;
+        }
+        .theme-toggle {
+            text-align: left; /* 左寄せ */
+            margin-bottom: 20px;
+        }
+        .theme-toggle button {
+            padding: 10px 20px;
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .theme-toggle button:hover {
+            background-color: #0056b3;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333333;
+            transition: color 0.3s ease;
+        }
+        body.dark label {
+            color: #dddddd;
+        }
+        input[type="text"], textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+        }
+        body.dark input[type="text"], body.dark textarea {
+            background-color: #555555;
+            color: #ffffff;
+            border-color: #444444;
+        }
+        input[type="text"]:focus, textarea:focus {
+            border-color: #0078d4;
+            outline: none;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        body.dark li {
+            background-color: #555555;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        li:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .message-number {
+            font-size: 14px;
+            color: #888888;
+            margin-bottom: 5px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="light">
+    <div class="container">
+        <h1>Piris板</h1>
+        <div class="theme-toggle">
+            <button onclick="switchTheme()">テーマを切り替える</button>
+        </div>
+        <div class="form-container">
+            <form id="messageForm">
+                <label for="user_name">名前:</label>
+                <input type="text" id="user_name" name="user_name" required>
+                <label for="message">メッセージ:</label>
+                <textarea id="message" name="message" rows="4" required></textarea>
+                <button type="submit">投稿する</button>
+            </form>
+        </div>
+        <div class="message-list">
+            <ul id="messageList">
+                <!-- メッセージはここに追加されます -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadMessages();
+        });
+
+        async function loadMessages() {
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            data.messages.forEach((message) => {
+                addMessageToList(message.user_name, message.message);
+            });
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+            const user_name = document.getElementById('user_name').value;
+            const message = document.getElementById('message').value;
+
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_name, message }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                addMessageToList(data.message.user_name, data.message.message);
+            }
+
+            // フォームをクリア
+            document.getElementById('messageForm').reset();
+        }
+
+        // メッセージを画面に表示
+        function addMessageToList(user_name, message) {
+            const messageList = document.getElementById('messageList');
+            const newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${user_name}</strong>: ${message}</p>`;
+            messageList.appendChild(newMessage);
+
+            // 新しいメッセージにフェードインアニメーションを追加
+            newMessage.style.opacity = 0;
+            newMessage.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                newMessage.style.animation = 'fadeIn 0.5s forwards';
+            }, 100);
+        }
+
+        // テーマの切り替え
+        function switchTheme() {
+            const body = document.body;
+            body.classList.toggle('light');
+            body.classList.toggle('dark');
+        }
+
+        // フォーム送信時のイベント
+        document.getElementById('messageForm').addEventListener('submit', submitForm);
+    </script>
+</body>
+</html>
