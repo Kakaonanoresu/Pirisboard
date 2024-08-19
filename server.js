@@ -1,31 +1,23 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const path = require('path');
-
+const { addMessage, getMessages } = require('./messages'); // 修正したmessages.jsを読み込み
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+const port = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(express.static('public'));
 
-let messages = []; // メッセージの保存
-
-io.on('connection', (socket) => {
-    console.log('a user connected');
-    socket.emit('loadMessages', messages); // 既存メッセージの送信
-
-    socket.on('newMessage', (message) => {
-        messages.push(message);
-        io.emit('newMessage', message); // 全クライアントにメッセージを送信
-    });
-
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
+// メッセージ取得エンドポイント
+app.get('/api/messages', (req, res) => {
+    res.json({ messages: getMessages() });
 });
 
-server.listen(3000, () => {
-    console.log('Server is running on port 3000');
+// メッセージ投稿エンドポイント
+app.post('/api/messages', (req, res) => {
+    const { user_name, message } = req.body;
+    const newMessage = addMessage(user_name, message);
+    res.json({ message: newMessage });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
