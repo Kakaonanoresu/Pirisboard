@@ -1,23 +1,48 @@
-import mongoose from 'mongoose';
+import { MongoClient, ServerApiVersion } from 'mongodb';
 
-const MessageSchema = new mongoose.Schema({
-    text: String,
-    timestamp: { type: Date, default: Date.now }
+// MongoDB 接続 URI
+const uri = "mongodb+srv://kuitcodekt:<password>@messages.f7jyk9i.mongodb.net/?retryWrites=true&w=majority&appName=messages";
+
+// MongoDB クライアントの作成
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
 });
 
-const Message = mongoose.model('Message', MessageSchema);
+const databaseName = 'messages';
+const collectionName = 'messages';
+
+async function getCollection() {
+  try {
+    await client.connect();
+    return client.db(databaseName).collection(collectionName);
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    throw error;
+  }
+}
 
 export async function handler(req, res) {
-    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+  try {
+    const collection = await getCollection();
 
     if (req.method === 'POST') {
-        const message = new Message({ text: req.body.text });
-        await message.save();
-        return res.status(200).json({ message: 'Message saved' });
+      const message = { text: req.body.text, timestamp: new Date() };
+      await collection.insertOne(message);
+      res.status(200).json({ message: 'Message saved' });
     } else if (req.method === 'GET') {
-        const messages = await Message.find({});
-        return res.status(200).json(messages);
+      const messages = await collection.find({}).toArray();
+      res.status(200).json(messages);
     } else {
-        return res.status(405).json({ message: 'Method not allowed' });
+      res.status(405).json({ message: 'Method not allowed' });
     }
+  } catch (error) {
+    console.error('Error handling request:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    await client.close();
+  }
 }
