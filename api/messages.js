@@ -1,9 +1,8 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
-// MongoDB 接続 URI
+// 環境変数から MongoDB URI を取得
 const uri = process.env.MONGO_URI;
 
-// MongoDB クライアントの作成
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
