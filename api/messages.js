@@ -1,7 +1,7 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
 
 // MongoDB 接続 URI
-const uri = "mongodb+srv://kuitcodekt:<password>@messages.f7jyk9i.mongodb.net/?retryWrites=true&w=majority&appName=messages";
+const uri = "mongodb+srv://kuitcodekt:LnoxYpRQwRe9n5ed@messages.f7jyk9i.mongodb.net/?retryWrites=true&w=majority&appName=messages";
 
 // MongoDB クライアントの作成
 const client = new MongoClient(uri, {
