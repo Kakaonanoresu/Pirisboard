@@ -1,47 +1,18 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+let messages = [];
 
-// 環境変数から MongoDB URI を取得
-const uri = process.env.MONGO_URI;
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-const databaseName = 'messages';
-const collectionName = 'messages';
-
-async function getCollection() {
-  try {
-    await client.connect();
-    return client.db(databaseName).collection(collectionName);
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    throw error;
-  }
-}
-
-export default async function handler(req, res) {
-  try {
-    const collection = await getCollection();
-
-    if (req.method === 'POST') {
-      const message = { text: req.body.text, timestamp: new Date() };
-      await collection.insertOne(message);
-      res.status(200).json({ message: 'Message saved' });
-    } else if (req.method === 'GET') {
-      const messages = await collection.find({}).toArray();
-      res.status(200).json(messages);
-    } else {
-      res.status(405).json({ message: 'Method not allowed' });
+export default function handler(req, res) {
+  if (req.method === 'GET') {
+    // メッセージを取得する
+    res.status(200).json({ messages });
+  } else if (req.method === 'POST') {
+    // 新しいメッセージを追加する
+    const { user_name, message } = req.body;
+    if (!user_name || !message) {
+      res.status(400).json({ error: 'Name and message are required' });
+      return;
     }
-  } catch (error) {
-    console.error('Error handling request:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  } finally {
-    await client.close();
+    const newMessage = { user_name, message };
+    messages.push(newMessage);
+    res.status(201).json({ success: true, message: newMessage });
   }
 }
