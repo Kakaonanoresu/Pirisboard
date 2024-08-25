@@ -10,16 +10,16 @@
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-            color: #333333; /* テキストカラー */
+            color: #333333;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
         body.light {
             background-color: #f0f0f0;
-            color: #333333; /* ライトモードのテキストカラー */
+            color: #333333;
         }
         body.dark {
             background-color: #2e2e2e;
-            color: #ffffff; /* ダークモードのテキストカラー */
+            color: #ffffff;
         }
         .container {
             max-width: 800px;
@@ -125,7 +125,7 @@
         ul {
             list-style-type: none;
             padding: 0;
-            margin-top: 120px; /* 固定バーの下にコンテンツが配置されるように調整 */
+            margin-top: 120px;
         }
         li {
             margin-bottom: 20px;
@@ -137,12 +137,12 @@
             transform: translateY(20px);
             animation: fadeIn 0.5s forwards;
             transition: box-shadow 0.3s ease, background-color 0.3s ease;
-            color: #333333; /* ライトモードのリストアイテムのテキストカラー */
+            color: #333333;
         }
         body.dark li {
             background-color: #555555;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-            color: #ffffff; /* ダークモードのリストアイテムのテキストカラー */
+            color: #ffffff;
         }
         li:hover {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -154,7 +154,7 @@
         }
         .load-messages {
             position: fixed;
-            bottom: 20px;
+            bottom: 70px;
             right: 20px;
             padding: 10px 20px;
             background-color: #0078d4;
@@ -167,6 +167,23 @@
         }
         .load-messages:hover {
             background-color: #0056b3;
+            transform: scale(1.1);
+        }
+        .scroll-to-bottom {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .scroll-to-bottom:hover {
+            background-color: #218838;
             transform: scale(1.1);
         }
         @keyframes fadeIn {
@@ -203,6 +220,7 @@
     </div>
 
     <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
+    <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -240,9 +258,15 @@
             // フォームをクリア
             document.getElementById('user_name').value = '';
             document.getElementById('message').value = '';
+
+            // 派手なアニメーション
+            const button = event.target;
+            button.style.transform = 'scale(1.5)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 500);
         }
 
-        // メッセージを画面に表示
         function addMessageToList(user_name, message) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
@@ -254,6 +278,9 @@
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
             }, 100);
+
+            // 新しいメッセージが追加されたら下にスクロール
+            scrollToBottom();
         }
 
         // テーマの切り替え
@@ -261,6 +288,14 @@
             const body = document.body;
             body.classList.toggle('light');
             body.classList.toggle('dark');
+        }
+
+        // 一番下にスクロールする
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     </script>
 </body>
