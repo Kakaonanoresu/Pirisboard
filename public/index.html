@@ -152,23 +152,6 @@
             color: #888888;
             margin-bottom: 5px;
         }
-        .load-messages {
-            position: fixed;
-            bottom: 70px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #0078d4;
-            color: #ffffff;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-        .load-messages:hover {
-            background-color: #0056b3;
-            transform: scale(1.1);
-        }
         .scroll-to-bottom {
             position: fixed;
             bottom: 20px;
@@ -219,8 +202,7 @@
         </div>
     </div>
 
-    <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
-    <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
+    <button class="scroll-to-bottom" onclick="loadMessagesAndScroll()">一番下に行く</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -274,7 +256,6 @@
             messageList.appendChild(newMessage);
 
             // アニメーションの追加
-            newMessage.style.transform = 'translateY(20px)';
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
             }, 100);
@@ -295,6 +276,13 @@
             window.scrollTo({
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
+            });
+        }
+
+        // メッセージを読み込み、下にスクロールする
+        function loadMessagesAndScroll() {
+            loadMessages().then(() => {
+                scrollToBottom();
             });
         }
     </script>
