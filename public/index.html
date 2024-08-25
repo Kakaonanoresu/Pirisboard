@@ -132,6 +132,23 @@
             flex-direction: column;
             gap: 10px;
         }
+        .load-messages {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #0078d4;
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .load-messages:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
         @keyframes fadeIn {
             0% {
                 opacity: 0;
@@ -146,7 +163,7 @@
 </head>
 <body class="light">
     <div class="container">
-        <h1>Piris板</h1>
+        <h1>PirisBoard</h1>
         <div class="theme-toggle">
             <button onclick="switchTheme()">テーマを切り替える</button>
         </div>
@@ -165,6 +182,8 @@
             </ul>
         </div>
     </div>
+
+    <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
