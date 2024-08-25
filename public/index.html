@@ -179,6 +179,45 @@
                 transform: translateY(0);
             }
         }
+
+        /* スマホ向けのスタイル */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px auto;
+                padding: 10px;
+            }
+            .fixed-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            .theme-toggle {
+                margin-left: 0;
+                margin-bottom: 10px;
+            }
+            .form-container {
+                width: 100%;
+                flex-direction: column;
+                gap: 5px;
+            }
+            input[type="text"], textarea {
+                width: 100%;
+                margin-right: 0;
+                padding: 8px;
+            }
+            button {
+                padding: 10px 20px;
+                width: 100%;
+            }
+            ul {
+                margin-top: 80px;
+            }
+            .scroll-to-bottom {
+                bottom: 15px;
+                right: 15px;
+                padding: 8px 16px;
+            }
+        }
     </style>
 </head>
 <body class="light">
@@ -233,35 +272,23 @@
             });
 
             if (response.ok) {
-                const data = await response.json();
-                addMessageToList(data.message.user_name, data.message.message);
+                addMessageToList(user_name, message);
+                document.getElementById('user_name').value = '';
+                document.getElementById('message').value = '';
+                scrollToBottom();
             }
-
-            // フォームをクリア
-            document.getElementById('user_name').value = '';
-            document.getElementById('message').value = '';
-
-            // 派手なアニメーション
-            const button = event.target;
-            button.style.transform = 'scale(1.5)';
-            setTimeout(() => {
-                button.style.transform = 'scale(1)';
-            }, 500);
         }
 
         function addMessageToList(user_name, message) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
-            newMessage.innerHTML = `<div class="message-number">${user_name}</div><div>${message}</div>`;
+            newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
             messageList.appendChild(newMessage);
 
             // アニメーションの追加
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
             }, 100);
-
-            // 新しいメッセージが追加されたら下にスクロール
-            scrollToBottom();
         }
 
         // テーマの切り替え
