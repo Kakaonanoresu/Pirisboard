@@ -10,13 +10,16 @@
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-            transition: background-color 0.5s ease;
+            color: #333333; /* テキストカラー */
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
         body.light {
             background-color: #f0f0f0;
+            color: #333333; /* ライトモードのテキストカラー */
         }
         body.dark {
             background-color: #2e2e2e;
+            color: #ffffff; /* ダークモードのテキストカラー */
         }
         .container {
             max-width: 800px;
@@ -134,10 +137,12 @@
             transform: translateY(20px);
             animation: fadeIn 0.5s forwards;
             transition: box-shadow 0.3s ease, background-color 0.3s ease;
+            color: #333333; /* ライトモードのリストアイテムのテキストカラー */
         }
         body.dark li {
             background-color: #555555;
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            color: #ffffff; /* ダークモードのリストアイテムのテキストカラー */
         }
         li:hover {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
@@ -241,11 +246,10 @@
         function addMessageToList(user_name, message) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
-            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${user_name}</strong>: ${message}</p>`;
+            newMessage.innerHTML = `<div class="message-number">${user_name}</div><div>${message}</div>`;
             messageList.appendChild(newMessage);
 
-            // 新しいメッセージにフェードインアニメーションを追加
-            newMessage.style.opacity = 0;
+            // アニメーションの追加
             newMessage.style.transform = 'translateY(20px)';
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
