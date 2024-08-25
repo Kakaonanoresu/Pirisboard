@@ -225,9 +225,12 @@
                 margin-top: 80px;
             }
             .scroll-to-bottom, .load-messages {
-                bottom: 15px;
+                bottom: 60px;
                 right: 15px;
                 padding: 8px 16px;
+            }
+            .scroll-to-bottom {
+                bottom: 15px;
             }
         }
     </style>
@@ -265,7 +268,8 @@
             const response = await fetch('/api/messages');
             const data = await response.json();
             const messageList = document.getElementById('messageList');
-            messageList.innerHTML = '';
+            messageList.innerHTML = ''; // リストをクリア
+
             data.messages.forEach(({ user_name, message }, index) => {
                 addMessageToList(user_name, message, index + 1);
             });
@@ -292,7 +296,7 @@
             }
         }
 
-        function addMessageToList(user_name, message) {
+        function addMessageToList(user_name, message, index) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
             newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
