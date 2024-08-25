@@ -152,12 +152,9 @@
             color: #888888;
             margin-bottom: 5px;
         }
-        .scroll-to-bottom {
+        .scroll-to-bottom, .load-messages {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
             padding: 10px 20px;
-            background-color: #28a745;
             color: #ffffff;
             border: none;
             border-radius: 50px;
@@ -165,10 +162,25 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
+        .scroll-to-bottom {
+            bottom: 20px;
+            right: 20px;
+            background-color: #28a745;
+        }
         .scroll-to-bottom:hover {
             background-color: #218838;
             transform: scale(1.1);
         }
+        .load-messages {
+            bottom: 80px;
+            right: 20px;
+            background-color: #0078d4;
+        }
+        .load-messages:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+
         @keyframes fadeIn {
             0% {
                 opacity: 0;
@@ -212,7 +224,7 @@
             ul {
                 margin-top: 80px;
             }
-            .scroll-to-bottom {
+            .scroll-to-bottom, .load-messages {
                 bottom: 15px;
                 right: 15px;
                 padding: 8px 16px;
@@ -241,7 +253,8 @@
         </div>
     </div>
 
-    <button class="scroll-to-bottom" onclick="loadMessagesAndScroll()">一番下に行く</button>
+    <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
+    <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -253,8 +266,8 @@
             const data = await response.json();
             const messageList = document.getElementById('messageList');
             messageList.innerHTML = '';
-            data.messages.forEach((message) => {
-                addMessageToList(message.user_name, message.message);
+            data.messages.forEach(({ user_name, message }, index) => {
+                addMessageToList(user_name, message, index + 1);
             });
         }
 
@@ -272,7 +285,7 @@
             });
 
             if (response.ok) {
-                addMessageToList(user_name, message);
+                loadMessages();
                 document.getElementById('user_name').value = '';
                 document.getElementById('message').value = '';
                 scrollToBottom();
@@ -303,13 +316,6 @@
             window.scrollTo({
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
-            });
-        }
-
-        // メッセージを読み込み、下にスクロールする
-        function loadMessagesAndScroll() {
-            loadMessages().then(() => {
-                scrollToBottom();
             });
         }
     </script>
