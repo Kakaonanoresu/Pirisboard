@@ -13,6 +13,7 @@
             color: #333333;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
+        /* テーマごとのスタイル */
         body.light {
             background-color: #f0f0f0;
             color: #333333;
@@ -180,7 +181,17 @@
             background-color: #0056b3;
             transform: scale(1.1);
         }
-
+        /* プレビューエリア */
+        .preview-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .preview-image, .preview-video {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 5px;
+        }
         @keyframes fadeIn {
             0% {
                 opacity: 0;
@@ -243,63 +254,85 @@
         <div class="form-container">
             <input type="text" id="user_name" name="user_name" placeholder="名前" required>
             <textarea id="message" name="message" rows="1" placeholder="メッセージ" required></textarea>
+            <input type="file" id="media" accept="image/*, video/*" onchange="previewFile()">
             <button type="button" onclick="submitForm(event)">投稿する</button>
         </div>
     </div>
-
     <div class="container">
-        <h1>PirisBoard</h1>
-        <div class="message-list">
-            <ul id="messageList">
-                <!-- メッセージはここに追加されます -->
-            </ul>
-        </div>
+        <ul id="messageList"></ul>
     </div>
-
     <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
     <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            loadMessages();
-        });
-
-        async function loadMessages() {
-            const response = await fetch('/api/messages');
-            const data = await response.json();
-            const messageList = document.getElementById('messageList');
-            messageList.innerHTML = ''; // リストをクリア
-
-            data.messages.forEach(({ user_name, message }, index) => {
-                addMessageToList(user_name, message, index + 1);
-            });
+        function previewFile() {
+            const previewArea = document.createElement('div');
+            previewArea.classList.add('preview-area');
+            const file = document.getElementById('media').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.classList.add('preview-image');
+                        previewArea.appendChild(img);
+                    } else if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.classList.add('preview-video');
+                        video.controls = true;
+                        previewArea.appendChild(video);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         async function submitForm(event) {
             event.preventDefault();
             const user_name = document.getElementById('user_name').value;
             const message = document.getElementById('message').value;
+            const fileInput = document.getElementById('media');
+            const formData = new FormData();
+            formData.append('user_name', user_name);
+            formData.append('message', message);
+
+            if (fileInput.files[0]) {
+                formData.append('media', fileInput.files[0]);
+            }
 
             const response = await fetch('/api/messages', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_name, message }),
+                body: formData,
             });
 
             if (response.ok) {
                 loadMessages();
                 document.getElementById('user_name').value = '';
                 document.getElementById('message').value = '';
+                fileInput.value = '';
                 scrollToBottom();
             }
         }
 
-        function addMessageToList(user_name, message, index) {
+        function addMessageToList(user_name, message, index, media) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
             newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
+            if (media) {
+                if (media.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(media);
+                    img.classList.add('preview-image');
+                    newMessage.appendChild(img);
+                } else if (media.type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = URL.createObjectURL(media);
+                    video.classList.add('preview-video');
+                    video.controls = true;
+                    newMessage.appendChild(video);
+                }
+            }
             messageList.appendChild(newMessage);
 
             // アニメーションの追加
