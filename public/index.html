@@ -265,9 +265,10 @@
     <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
     <script>
         function previewFile() {
-            const previewArea = document.createElement('div');
+            const previewArea = document.querySelector('.preview-area') || document.createElement('div');
             previewArea.classList.add('preview-area');
             const file = document.getElementById('media').files[0];
+            previewArea.innerHTML = ''; // プレビューエリアの内容をクリア
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -286,6 +287,9 @@
                 };
                 reader.readAsDataURL(file);
             }
+            if (!document.querySelector('.preview-area')) {
+                document.querySelector('.form-container').appendChild(previewArea);
+            }
         }
 
         async function submitForm(event) {
@@ -301,41 +305,39 @@
                 formData.append('media', fileInput.files[0]);
             }
 
-            const response = await fetch('/api/messages', {
-                method: 'POST',
-                body: formData,
-            });
+            try {
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-            if (response.ok) {
-                loadMessages();
-                document.getElementById('user_name').value = '';
-                document.getElementById('message').value = '';
-                fileInput.value = '';
-                scrollToBottom();
+                if (response.ok) {
+                    loadMessages();
+                    document.getElementById('user_name').value = '';
+                    document.getElementById('message').value = '';
+                    fileInput.value = '';
+                    scrollToBottom();
+                } else {
+                    console.error('投稿に失敗しました', response.statusText);
+                }
+            } catch (error) {
+                console.error('エラーが発生しました', error);
             }
         }
 
-        function addMessageToList(user_name, message, index, media) {
+        function addMessageToList(user_name, message, index, mediaUrl) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
             newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
-            if (media) {
-                if (media.type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(media);
-                    img.classList.add('preview-image');
-                    newMessage.appendChild(img);
-                } else if (media.type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(media);
-                    video.classList.add('preview-video');
-                    video.controls = true;
-                    newMessage.appendChild(video);
-                }
+            if (mediaUrl) {
+                const mediaElement = document.createElement(mediaUrl.includes('video') ? 'video' : 'img');
+                mediaElement.src = mediaUrl;
+                mediaElement.classList.add(mediaUrl.includes('video') ? 'preview-video' : 'preview-image');
+                if (mediaUrl.includes('video')) mediaElement.controls = true;
+                newMessage.appendChild(mediaElement);
             }
             messageList.appendChild(newMessage);
 
-            // アニメーションの追加
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
             }, 100);
@@ -354,6 +356,11 @@
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
             });
+        }
+
+        function loadMessages() {
+            // メッセージを読み込むためのダミー関数
+            console.log('メッセージを読み込み中...');
         }
     </script>
 </body>
