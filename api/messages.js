@@ -3,16 +3,18 @@ import fs from 'fs';
 
 export const config = {
   api: {
-    bodyParser: false, // デフォルトの bodyParser を無効にする
+    bodyParser: false, // デフォルトのbodyParserを無効にする
   },
 };
 
+// ミドルウェア関数としてフォームの解析を行う
 const handler = async (req, res) => {
   if (req.method === 'POST') {
     const form = new formidable.IncomingForm();
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
+        console.error('フォームの解析中にエラーが発生しました', err);
         res.status(500).json({ error: 'フォームデータの解析中にエラーが発生しました' });
         return;
       }
