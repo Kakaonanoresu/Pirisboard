@@ -13,7 +13,6 @@
             color: #333333;
             transition: background-color 0.5s ease, color 0.5s ease;
         }
-        /* テーマごとのスタイル */
         body.light {
             background-color: #f0f0f0;
             color: #333333;
@@ -181,17 +180,7 @@
             background-color: #0056b3;
             transform: scale(1.1);
         }
-        /* プレビューエリア */
-        .preview-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .preview-image, .preview-video {
-            max-width: 100px;
-            max-height: 100px;
-            border-radius: 5px;
-        }
+
         @keyframes fadeIn {
             0% {
                 opacity: 0;
@@ -254,90 +243,66 @@
         <div class="form-container">
             <input type="text" id="user_name" name="user_name" placeholder="名前" required>
             <textarea id="message" name="message" rows="1" placeholder="メッセージ" required></textarea>
-            <input type="file" id="media" accept="image/*, video/*" onchange="previewFile()">
             <button type="button" onclick="submitForm(event)">投稿する</button>
         </div>
     </div>
+
     <div class="container">
-        <ul id="messageList"></ul>
+        <h1>PirisBoard</h1>
+        <div class="message-list">
+            <ul id="messageList">
+                <!-- メッセージはここに追加されます -->
+            </ul>
+        </div>
     </div>
+
     <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
     <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
+
     <script>
-        function previewFile() {
-            const previewArea = document.querySelector('.preview-area') || document.createElement('div');
-            previewArea.classList.add('preview-area');
-            const file = document.getElementById('media').files[0];
-            previewArea.innerHTML = ''; // プレビューエリアの内容をクリア
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (file.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.classList.add('preview-image');
-                        previewArea.appendChild(img);
-                    } else if (file.type.startsWith('video/')) {
-                        const video = document.createElement('video');
-                        video.src = e.target.result;
-                        video.classList.add('preview-video');
-                        video.controls = true;
-                        previewArea.appendChild(video);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-            if (!document.querySelector('.preview-area')) {
-                document.querySelector('.form-container').appendChild(previewArea);
-            }
+        document.addEventListener("DOMContentLoaded", function () {
+            loadMessages();
+        });
+
+        async function loadMessages() {
+            const response = await fetch('/api/messages');
+            const data = await response.json();
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = ''; // リストをクリア
+
+            data.messages.forEach(({ user_name, message }, index) => {
+                addMessageToList(user_name, message, index + 1);
+            });
         }
 
         async function submitForm(event) {
             event.preventDefault();
             const user_name = document.getElementById('user_name').value;
             const message = document.getElementById('message').value;
-            const fileInput = document.getElementById('media');
-            const formData = new FormData();
-            formData.append('user_name', user_name);
-            formData.append('message', message);
 
-            if (fileInput.files[0]) {
-                formData.append('media', fileInput.files[0]);
-            }
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_name, message }),
+            });
 
-            try {
-                const response = await fetch('/api/messages', {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    loadMessages();
-                    document.getElementById('user_name').value = '';
-                    document.getElementById('message').value = '';
-                    fileInput.value = '';
-                    scrollToBottom();
-                } else {
-                    console.error('投稿に失敗しました', response.statusText);
-                }
-            } catch (error) {
-                console.error('エラーが発生しました', error);
+            if (response.ok) {
+                loadMessages();
+                document.getElementById('user_name').value = '';
+                document.getElementById('message').value = '';
+                scrollToBottom();
             }
         }
 
-        function addMessageToList(user_name, message, index, mediaUrl) {
+        function addMessageToList(user_name, message, index) {
             const messageList = document.getElementById('messageList');
             const newMessage = document.createElement('li');
             newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
-            if (mediaUrl) {
-                const mediaElement = document.createElement(mediaUrl.includes('video') ? 'video' : 'img');
-                mediaElement.src = mediaUrl;
-                mediaElement.classList.add(mediaUrl.includes('video') ? 'preview-video' : 'preview-image');
-                if (mediaUrl.includes('video')) mediaElement.controls = true;
-                newMessage.appendChild(mediaElement);
-            }
             messageList.appendChild(newMessage);
 
+            // アニメーションの追加
             setTimeout(() => {
                 newMessage.style.animation = 'fadeIn 0.5s forwards';
             }, 100);
@@ -356,11 +321,6 @@
                 top: document.body.scrollHeight,
                 behavior: 'smooth'
             });
-        }
-
-        function loadMessages() {
-            // メッセージを読み込むためのダミー関数
-            console.log('メッセージを読み込み中...');
         }
     </script>
 </body>
