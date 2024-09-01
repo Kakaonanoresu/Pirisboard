@@ -1,18 +1,32 @@
-// フロントエンドのコード
-async function fetchMessages() {
-    const response = await fetch('/api/messages');
-    const data = await response.json();
-    displayMessages(data.messages);
-}
+async function submitForm(event) {
+    event.preventDefault();
+    const user_name = document.getElementById('user_name').value;
+    const message = document.getElementById('message').value;
+    const fileInput = document.getElementById('media');
+    const formData = new FormData();
+    formData.append('user_name', user_name);
+    formData.append('message', message);
 
-async function postMessage(userName, messageContent) {
-    const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_name: userName, message: messageContent }),
-    });
-    const data = await response.json();
-    addMessageToUI(data.message);
+    if (fileInput.files[0]) {
+        formData.append('media', fileInput.files[0]);
+    }
+
+    try {
+        const response = await fetch('/api/messages', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (response.ok) {
+            loadMessages();
+            document.getElementById('user_name').value = '';
+            document.getElementById('message').value = '';
+            fileInput.value = '';
+            scrollToBottom();
+        } else {
+            console.error('投稿に失敗しました', response.statusText);
+        }
+    } catch (error) {
+        console.error('エラーが発生しました', error);
+    }
 }
