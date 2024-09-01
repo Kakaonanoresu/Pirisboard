@@ -1,44 +1,18 @@
-import formidable from 'formidable';
-import fs from 'fs';
+let messages = [];
 
-export const config = {
-  api: {
-    bodyParser: false, // デフォルトのbodyParserを無効にする
-  },
-};
-
-// ミドルウェア関数としてフォームの解析を行う
-const handler = async (req, res) => {
-  if (req.method === 'POST') {
-    const form = new formidable.IncomingForm();
-
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        console.error('フォームの解析中にエラーが発生しました', err);
-        res.status(500).json({ error: 'フォームデータの解析中にエラーが発生しました' });
-        return;
-      }
-
-      const { user_name, message } = fields;
-      const media = files.media;
-
-      if (!user_name || !message) {
-        res.status(400).json({ error: 'ユーザー名とメッセージは必須です' });
-        return;
-      }
-
-      // メディアファイルの処理（必要に応じて追加）
-      if (media) {
-        const data = fs.readFileSync(media.filepath);
-        fs.writeFileSync(`./uploads/${media.originalFilename}`, data);
-      }
-
-      // メッセージをサーバーに保存するロジックをここに追加
-      res.status(200).json({ success: true, user_name, message });
-    });
-  } else {
-    res.status(405).json({ error: '許可されていないメソッドです' });
+export default function handler(req, res) {
+  if (req.method === 'GET') {
+    // メッセージを取得する
+    res.status(200).json({ messages });
+  } else if (req.method === 'POST') {
+    // 新しいメッセージを追加する
+    const { user_name, message } = req.body;
+    if (!user_name || !message) {
+      res.status(400).json({ error: 'Name and message are required' });
+      return;
+    }
+    const newMessage = { user_name, message };
+    messages.push(newMessage);
+    res.status(201).json({ success: true, message: newMessage });
   }
-};
-
-export default handler;
+}
