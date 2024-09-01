@@ -1,9 +1,11 @@
 async function submitForm(event) {
     event.preventDefault();
+
     const user_name = document.getElementById('user_name').value;
     const message = document.getElementById('message').value;
     const fileInput = document.getElementById('media');
     const formData = new FormData();
+    
     formData.append('user_name', user_name);
     formData.append('message', message);
 
@@ -18,7 +20,7 @@ async function submitForm(event) {
         });
 
         if (response.ok) {
-            loadMessages();
+            loadMessages(); // メッセージをリロード
             document.getElementById('user_name').value = '';
             document.getElementById('message').value = '';
             fileInput.value = '';
