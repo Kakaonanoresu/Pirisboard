@@ -1,18 +1,30 @@
-let messages = [];
+import formidable from 'formidable';
+import fs from 'fs';
 
-export default function handler(req, res) {
-  if (req.method === 'GET') {
-    // メッセージを取得する
-    res.status(200).json({ messages });
-  } else if (req.method === 'POST') {
-    // 新しいメッセージを追加する
-    const { user_name, message } = req.body;
-    if (!user_name || !message) {
-      res.status(400).json({ error: 'Name and message are required' });
-      return;
-    }
-    const newMessage = { user_name, message };
-    messages.push(newMessage);
-    res.status(201).json({ success: true, message: newMessage });
+export const config = {
+  api: {
+    bodyParser: false, // デフォルトの bodyParser を無効にする
+  },
+};
+
+const handler = async (req, res) => {
+  if (req.method === 'POST') {
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        res.status(500).json({ error: 'Error parsing the form data' });
+        return;
+      }
+
+      const { user_name, message } = fields; // フォームのデータから `user_name` と `message` を取得
+      const media = files.media;
+
+      // メッセージを処理するロジックをここに追加
+      res.status(200).json({ success: true, user_name, message });
+    });
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
   }
-}
+};
+
+export default handler;
