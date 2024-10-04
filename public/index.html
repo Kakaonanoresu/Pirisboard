@@ -280,15 +280,6 @@
             const user_name = document.getElementById('user_name').value;
             const message = document.getElementById('message').value;
 
-            // 特定のメッセージで全削除
-            if (message === "alldeletemesausage") {
-                await fetch('/api/messages', {
-                    method: 'DELETE',
-                });
-                loadMessages();
-                return;
-            }
-
             const response = await fetch('/api/messages', {
                 method: 'POST',
                 headers: {
