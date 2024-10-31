@@ -1,28 +1,18 @@
-const express = require('express');
-const { saveMessage, getMessages } = require('../models/db');
+let messages = [];
 
-const router = express.Router();
-
-router.post('/', async (req, res) => {
-  const { name, message } = req.body;
-
-  try {
-    const savedMessage = await saveMessage(name, message);
-    res.status(201).json(savedMessage);
-  } catch (error) {
-    console.error('Error saving message:', error);
-    res.status(500).json({ error: 'Failed to save message' });
+export default function handler(req, res) {
+  if (req.method === 'GET') {
+    // メッセージを取得する
+    res.status(200).json({ messages });
+  } else if (req.method === 'POST') {
+    // 新しいメッセージを追加する
+    const { user_name, message } = req.body;
+    if (!user_name || !message) {
+      res.status(400).json({ error: 'Name and message are required' });
+      return;
+    }
+    const newMessage = { user_name, message };
+    messages.push(newMessage);
+    res.status(201).json({ success: true, message: newMessage });
   }
-});
-
-router.get('/', async (req, res) => {
-  try {
-    const messages = await getMessages();
-    res.status(200).json(messages);
-  } catch (error) {
-    console.error('Error retrieving messages:', error);
-    res.status(500).json({ error: 'Failed to retrieve messages' });
-  }
-});
-
-module.exports = router;
+}
