@@ -134,59 +134,76 @@
             to { opacity: 1; }
         }
     </style>
-    <script>
-        // ページが読み込まれたときにテーマを適用
-        document.addEventListener('DOMContentLoaded', function() {
-            var theme = '{{ theme }}';
-            document.body.classList.add(theme);
+        <script>
+    // ページが読み込まれたときにテーマを適用
+    document.addEventListener('DOMContentLoaded', function() {
+        var theme = '{{ theme }}';
+        document.body.classList.add(theme);
 
-            // メッセージリストにフェードインアニメーションを追加
-            document.querySelectorAll('.message-list li').forEach(function(li) {
-                li.classList.add('fade-in');
-            });
+        // メッセージリストにフェードインアニメーションを追加
+        document.querySelectorAll('.message-list li').forEach(function(li) {
+            li.classList.add('fade-in');
+        });
+    });
+
+    // テーマ切り替えのアニメーション
+    function switchTheme() {
+        document.body.classList.toggle('light');
+        document.body.classList.toggle('dark');
+    }
+
+    // フォーム送信時のアニメーション
+    async function submitForm(event) {
+        event.preventDefault();
+        var form = event.target;
+
+        // ボタンにアニメーションを追加
+        var button = form.querySelector('button');
+        button.classList.add('active');
+
+        // フォームデータを取得
+        var formData = new FormData(form);
+
+        // フォームを送信
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: formData
         });
 
-        // テーマ切り替えのアニメーション
-        function switchTheme() {
-            document.body.classList.toggle('light');
-            document.body.classList.toggle('dark');
-        }
+        if (response.ok) {
+            const data = await response.json();
 
-        // フォーム送信時のアニメーション
-        function submitForm(event) {
-            event.preventDefault();
-            var form = event.target;
+            // ボタンのアニメーションをリセット
+            button.classList.remove('active');
 
-            // ボタンにアニメーションを追加
-            var button = form.querySelector('button');
-            button.classList.add('active');
+            // 新しいメッセージを追加
+            var messageList = document.querySelector('.message-list ul');
+            var newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${data.user_name}</strong>: ${data.message_text}</p>`;
+            messageList.prepend(newMessage);
 
-            // フォームデータを取得
-            var formData = new FormData(form);
+            // 新しいメッセージにフェードインアニメーションを追加
+            newMessage.classList.add('fade-in');
 
-            // フォームを送信
-            fetch(form.action, {
-                method: form.method,
-                body: formData
-            }).then(response => response.json())
-            .then(data => {
-                // ボタンのアニメーションをリセット
-                button.classList.remove('active');
+            // フォームをリセット
+            form.reset();
 
-                // 新しいメッセージを追加
-                var messageList = document.querySelector('.message-list ul');
-                var newMessage = document.createElement('li');
-                newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${data.user_name}</strong>: ${data.message_text}</p>`;
-                messageList.prepend(newMessage);
+            // Discord Webhookにメッセージを送信
+            const webhookUrl = "https://discord.com/api/webhooks/1301860062813229086/QioABycWV47Qrf9sbazvNESZRlPlOpgJzwl-VM3yJWvKMh_w2BEmGaXPUtIdDX9NPsOs"; // Webhook URLをここに入力
+            const discordMessage = {
+                content: `${data.user_name}: ${data.message_text}`
+            };
 
-                // 新しいメッセージにフェードインアニメーションを追加
-                newMessage.classList.add('fade-in');
-
-                // フォームをリセット
-                form.reset();
+            await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(discordMessage),
             });
         }
-    </script>
+    }
+</script>
 </head>
 <body>
     <div class="container">
