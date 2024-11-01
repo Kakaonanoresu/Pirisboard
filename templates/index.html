@@ -247,7 +247,7 @@
 
         // メッセージの監視（新着メッセージ通知用）
         setInterval(async () => {
-            const response = await fetch('/api/messages/latest');
+            const response = await fetch('/api/messages/');
             const latestMessage = await response.json();
 
             if (latestMessage && latestMessage.message) {
