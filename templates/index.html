@@ -134,7 +134,7 @@
             to { opacity: 1; }
         }
     </style>
-        <script>
+       <script>
     // ページが読み込まれたときにテーマを適用
     document.addEventListener('DOMContentLoaded', function() {
         var theme = '{{ theme }}';
@@ -164,7 +164,7 @@
         // フォームデータを取得
         var formData = new FormData(form);
 
-        // フォームを送信
+        // フォームをサーバーに送信
         const response = await fetch(form.action, {
             method: form.method,
             body: formData
@@ -194,13 +194,24 @@
                 content: `${data.user_name}: ${data.message_text}`
             };
 
-            await fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(discordMessage),
-            });
+            // Webhookの送信
+            try {
+                const discordResponse = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(discordMessage),
+                });
+
+                if (!discordResponse.ok) {
+                    console.error('Discord Webhook送信エラー:', discordResponse.statusText);
+                }
+            } catch (error) {
+                console.error('Discord Webhook送信中のエラー:', error);
+            }
+        } else {
+            console.error('フォーム送信エラー:', response.statusText);
         }
     }
 </script>
