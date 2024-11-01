@@ -187,33 +187,6 @@
 
             // フォームをリセット
             form.reset();
-
-            // Discord Webhookにメッセージを送信
-            const webhookUrl = "https://discord.com/api/webhooks/1301860062813229086/QioABycWV47Qrf9sbazvNESZRlPlOpgJzwl-VM3yJWvKMh_w2BEmGaXPUtIdDX9NPsOs"; // Webhook URLをここに入力
-            const discordMessage = {
-                content: `${data.user_name}: ${data.message_text}`
-            };
-
-            // Webhookの送信
-            try {
-                const discordResponse = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(discordMessage),
-                });
-
-                if (!discordResponse.ok) {
-                    console.error('Discord Webhook送信エラー:', discordResponse.statusText);
-                }
-            } catch (error) {
-                console.error('Discord Webhook送信中のエラー:', error);
-            }
-        } else {
-            console.error('フォーム送信エラー:', response.statusText);
-        }
-    }
 </script>
 </head>
 <body>
