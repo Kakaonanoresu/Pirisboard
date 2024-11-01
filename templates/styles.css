@@ -111,9 +111,9 @@ body {
 
         /* ダークテーマ */
         body.dark {
-            --bg-color: #1e1e1e;
+            --bg-color: #212121;
             --text-color: #ffffff;
-            --container-bg: #2e2e2e;
+            --container-bg: #1e1e1e;
             --input-border: #555555;
         }
 
