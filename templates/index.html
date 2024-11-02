@@ -1,112 +1,94 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <icon href="fabicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PirisBoard</title>
-    <link rel="stylesheet" href="styles.css">
+   <link rel="stylesheet" href="styles.css"
+       <script>
+    // ページが読み込まれたときにテーマを適用
+    document.addEventListener('DOMContentLoaded', function() {
+        var theme = '{{ theme }}';
+        document.body.classList.add(theme);
+
+        // メッセージリストにフェードインアニメーションを追加
+        document.querySelectorAll('.message-list li').forEach(function(li) {
+            li.classList.add('fade-in');
+        });
+    });
+
+    // テーマ切り替えのアニメーション
+    function switchTheme() {
+        document.body.classList.toggle('light');
+        document.body.classList.toggle('dark');
+    }
+
+    // フォーム送信時のアニメーション
+    async function submitForm(event) {
+        event.preventDefault();
+        var form = event.target;
+
+        // ボタンにアニメーションを追加
+        var button = form.querySelector('button');
+        button.classList.add('active');
+
+        // フォームデータを取得
+        var formData = new FormData(form);
+
+        // フォームをサーバーに送信
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+
+            // ボタンのアニメーションをリセット
+            button.classList.remove('active');
+
+            // 新しいメッセージを追加
+            var messageList = document.querySelector('.message-list ul');
+            var newMessage = document.createElement('li');
+            newMessage.innerHTML = `<div class="message-number">新しいメッセージ</div><p><strong>${data.user_name}</strong>: ${data.message_text}</p>`;
+            messageList.prepend(newMessage);
+
+            // 新しいメッセージにフェードインアニメーションを追加
+            newMessage.classList.add('fade-in');
+
+            // フォームをリセット
+            form.reset();
+</script>
 </head>
-<body class="light">
-    <div class="fixed-bar">
+<body>
+    <div class="container">
+        <a>メッセージが送られていても再読み込みしないと見れないよ！！</a>
+        <h1>Piris板</h1>
         <div class="theme-toggle">
-            <button onclick="switchTheme()">テーマを切り替える</button>
+            <form action="/switch_theme" method="POST" onsubmit="switchTheme()">
+                <button type="submit">テーマを切り替える</button>
+            </form>
         </div>
         <div class="form-container">
-            <input type="text" id="user_name" name="user_name" placeholder="名前" required>
-            <textarea id="message" name="message" rows="1" placeholder="メッセージ" required></textarea>
-            <button type="button" onclick="submitForm(event)">投稿する</button>
+            <form action="/" method="POST" onsubmit="submitForm(event)">
+                <label for="user_name">名前:</label>
+                <input type="text" id="user_name" name="user_name" required>
+                <label for="message">メッセージ:</label>
+                <textarea id="message" name="message" rows="4" required></textarea>
+                <button type="submit">投稿する</button>
+            </form>
         </div>
-    </div>
-
-    <div class="container">
-        <h1>PirisBoard</h1>
         <div class="message-list">
-            <ul id="messageList">
-                <!-- メッセージはここに追加されます -->
+            <ul>
+                {% for index, message in enumerate(messages) %}
+                <li>
+                    <div class="message-number">メッセージ {{ index + 1 }}</div>
+                    <p><strong>{{ message[0] }}</strong>: {{ message[1] }}</p>
+                </li>
+                {% endfor %}
             </ul>
         </div>
     </div>
-
-    <button class="scroll-to-bottom" onclick="scrollToBottom()">一番下に行く</button>
-    <button class="load-messages" onclick="loadMessages()">メッセージを読み込む</button>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            loadMessages();
-            startPollingMessages();
-        });
-
-        // 新しいメッセージのポーリング
-        function startPollingMessages() {
-            setInterval(async function () {
-                await loadMessages(false);  // メッセージ読み込みの際にスクロールしない
-            }, 5000); // 5秒ごとにチェック
-        }
-
-        async function loadMessages(scrollToBottomAfterLoad = true) {
-            const response = await fetch('/api/messages');
-            const data = await response.json();
-            const messageList = document.getElementById('messageList');
-
-            messageList.innerHTML = ''; // リストをクリア
-
-            data.messages.forEach(({ user_name, message }, index) => {
-                addMessageToList(user_name, message, index + 1);
-            });
-
-            // 新しいメッセージがあれば一番下にスクロール
-            if (scrollToBottomAfterLoad) {
-                scrollToBottom();
-            }
-        }
-
-        async function submitForm(event) {
-            event.preventDefault();
-            const user_name = document.getElementById('user_name').value;
-            const message = document.getElementById('message').value;
-
-            const response = await fetch('/api/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ user_name, message }),
-            });
-
-            if (response.ok) {
-                loadMessages();  // 送信後にメッセージを再読み込み
-                document.getElementById('user_name').value = '';
-                document.getElementById('message').value = '';
-                scrollToBottom();
-            }
-        }
-
-        function addMessageToList(user_name, message, index) {
-            const messageList = document.getElementById('messageList');
-            const newMessage = document.createElement('li');
-            newMessage.innerHTML = `<strong>${user_name}</strong>: ${message}`;
-            messageList.appendChild(newMessage);
-
-            // アニメーションの追加
-            setTimeout(() => {
-                newMessage.style.animation = 'fadeIn 0.5s forwards';
-            }, 100);
-        }
-
-        // テーマの切り替え
-        function switchTheme() {
-            const body = document.body;
-            body.classList.toggle('light');
-            body.classList.toggle('dark');
-        }
-
-        // 一番下にスクロールする
-        function scrollToBottom() {
-            window.scrollTo({
-                top: document.body.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-    </script>
 </body>
 </html>
