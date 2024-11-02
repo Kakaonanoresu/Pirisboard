@@ -1,30 +1,18 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+let messages = [];
 
-const pool = new Pool({
-  connectionString: "postgres://default:5YpfusMB1hCr@ep-muddy-king-a4x9wkuw-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require?sslmode=require", // Vercelの環境変数にDATABASE_URLを設定してください
-});
-
-async function saveMessage(content, username) {
-  try {
-    const query = 'INSERT INTO messages (content, username, timestamp) VALUES ($1, $2, NOW()) RETURNING *';
-    const values = [content, username];
-    const res = await pool.query(query, values);
-    return res.rows[0];
-  } catch (err) {
-    console.error('Error saving message:', err);
+export default function handler(req, res) {
+  if (req.method === 'GET') {
+    // メッセージを取得する
+    res.status(200).json({ messages });
+  } else if (req.method === 'POST') {
+    // 新しいメッセージを追加する
+    const { user_name, message } = req.body;
+    if (!user_name || !message) {
+      res.status(400).json({ error: 'Name and message are required' });
+      return;
+    }
+    const newMessage = { user_name, message };
+    messages.push(newMessage);
+    res.status(201).json({ success: true, message: newMessage });
   }
 }
-
-async function loadMessages() {
-  try {
-    const query = 'SELECT * FROM messages ORDER BY timestamp ASC';
-    const res = await pool.query(query);
-    return res.rows;
-  } catch (err) {
-    console.error('Error loading messages:', err);
-    return [];
-  }
-}
-
-module.exports = { saveMessage, loadMessages };
